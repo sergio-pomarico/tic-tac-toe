@@ -1,7 +1,8 @@
 import { FC, ReactNode, useState } from "react";
+import confetti from "canvas-confetti";
 import "./App.css";
 
-const TURNS = { X: "X", O: "O" };
+const TURNS = { X: "❌", O: "⚪️" };
 const initialBoard = Array(9).fill(null);
 const WINNER_COMBINATIONS = [
   // rows
@@ -48,7 +49,12 @@ const Square: FC<SquareProps> = ({
 function App() {
   const [board, setBoard] = useState<Array<string | null>>(initialBoard);
   const [turn, setTurn] = useState<string>(TURNS.X);
-  const [winner, setWinner] = useState<string | null>(null); // X, O, null
+  const [winner, setWinner] = useState<boolean | null>(null); // X, O, null
+  const resetGame = () => {
+    setBoard(initialBoard);
+    setTurn(TURNS.X);
+    setWinner(null);
+  };
   const updateBoard = (index: number) => {
     if (board[index] !== null || winner) return;
 
@@ -56,13 +62,15 @@ function App() {
     newBoard[index] = turn;
     setBoard(newBoard);
 
+    const newWinner = checkWinner(newBoard);
+    if (newWinner !== null) {
+      setWinner(newWinner);
+      confetti();
+      return;
+    }
+
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
-
-    const newWinner = checkWinner(newBoard);
-    if (newWinner) {
-      setWinner(newWinner);
-    }
   };
   const checkWinner = (boardToCheck: Array<string | null>) => {
     for (const combo of WINNER_COMBINATIONS) {
@@ -72,14 +80,20 @@ function App() {
         boardToCheck[a] === boardToCheck[b] &&
         boardToCheck[a] === boardToCheck[c]
       ) {
-        return boardToCheck[a];
+        return true;
+      } else if (checkEndGame(boardToCheck)) {
+        return false;
       }
     }
     return null;
   };
+  const checkEndGame = (boardToCheck: Array<string | null>) => {
+    return boardToCheck.every((square) => square !== null);
+  };
   return (
     <main className="board">
       <h1>Tic Tac Toe</h1>
+      <button onClick={resetGame}>Play Again</button>
       <section className="game">
         {board.map((__, index) => {
           return (
@@ -93,6 +107,21 @@ function App() {
         <Square isSelected={turn === TURNS.X}>{TURNS.X}</Square>
         <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
       </section>
+      {winner !== null && (
+        <section className="winner">
+          <div className="text">
+            <h2>{winner ? "Win" : "Draw"}</h2>
+            {winner !== false && (
+              <header className="win">
+                <Square>{turn}</Square>
+              </header>
+            )}
+            <footer>
+              <button onClick={resetGame}>Play Again</button>
+            </footer>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
