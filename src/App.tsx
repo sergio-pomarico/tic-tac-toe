@@ -1,18 +1,26 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
-import "./App.css";
 import { TURNS, initialBoard } from "./constanst";
 import { checkWinner } from "./logic";
 import { Square } from "./square";
+import "./App.css";
 
 function App() {
-  const [board, setBoard] = useState<Array<string | null>>(initialBoard);
-  const [turn, setTurn] = useState<string>(TURNS.X);
+  const boardFromStorage = window.localStorage.getItem("board");
+  const turnFromStorage = window.localStorage.getItem("turn");
+  const [board, setBoard] = useState<Array<string | null>>(() => {
+    return JSON.parse(boardFromStorage || "null") || initialBoard;
+  });
+  const [turn, setTurn] = useState<string>(() => {
+    return JSON.parse(turnFromStorage || "null") || TURNS.X;
+  });
   const [winner, setWinner] = useState<boolean | null>(null); // X, O, null
   const resetGame = () => {
     setBoard(initialBoard);
     setTurn(TURNS.X);
     setWinner(null);
+    window.localStorage.removeItem("board");
+    window.localStorage.removeItem("turn");
   };
   const updateBoard = (index: number) => {
     if (board[index] !== null || winner) return;
@@ -27,9 +35,11 @@ function App() {
       confetti();
       return;
     }
-
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
+
+    window.localStorage.setItem("board", JSON.stringify(newBoard));
+    window.localStorage.setItem("turn", JSON.stringify(newTurn));
   };
 
   return (
