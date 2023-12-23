@@ -1,50 +1,9 @@
-import { FC, ReactNode, useState } from "react";
+import { useState } from "react";
 import confetti from "canvas-confetti";
 import "./App.css";
-
-const TURNS = { X: "❌", O: "⚪️" };
-const initialBoard = Array(9).fill(null);
-const WINNER_COMBINATIONS = [
-  // rows
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-
-  // cols
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-
-  // diagonals
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
-interface SquareProps {
-  children: ReactNode;
-  index?: number;
-  isSelected?: boolean;
-  updateBoard?: (index: number) => void;
-}
-
-const Square: FC<SquareProps> = ({
-  children,
-  isSelected = false,
-  updateBoard,
-  index,
-}) => {
-  const className = `square ${isSelected ? "is-selected" : ""}`;
-  const handeClick = () => {
-    if (updateBoard) {
-      updateBoard(index!);
-    }
-  };
-  return (
-    <div className={className} onClick={handeClick}>
-      {children}
-    </div>
-  );
-};
+import { TURNS, initialBoard } from "./constanst";
+import { checkWinner } from "./logic";
+import { Square } from "./square";
 
 function App() {
   const [board, setBoard] = useState<Array<string | null>>(initialBoard);
@@ -72,24 +31,7 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
   };
-  const checkWinner = (boardToCheck: Array<string | null>) => {
-    for (const combo of WINNER_COMBINATIONS) {
-      const [a, b, c] = combo;
-      if (
-        boardToCheck[a] &&
-        boardToCheck[a] === boardToCheck[b] &&
-        boardToCheck[a] === boardToCheck[c]
-      ) {
-        return true;
-      } else if (checkEndGame(boardToCheck)) {
-        return false;
-      }
-    }
-    return null;
-  };
-  const checkEndGame = (boardToCheck: Array<string | null>) => {
-    return boardToCheck.every((square) => square !== null);
-  };
+
   return (
     <main className="board">
       <h1>Tic Tac Toe</h1>
